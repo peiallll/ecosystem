@@ -2,6 +2,10 @@ import random as r
 import pygame as pg
 from settings import screen_width, screen_height
 
+pg.mixer.init()
+
+death_sfx = pg.mixer.Sound("sfx/death.wav")
+
 class Prey:
     counter = 0
 
@@ -23,6 +27,8 @@ class Prey:
         
         # resting state
         self.resting = False
+        self.rest_chance = 3
+        self.rest_chance_updated = False
         self.rest_timer = 0
 
         # initial target
@@ -38,7 +44,8 @@ class Prey:
     def update(self, dt, screen_width, screen_height):
         self.age += 1 * dt
 
-        self.energy -= 1.5 * dt
+        if self.resting == False:
+            self.energy -= 1.5 * dt
         self.energy = max(0, self.energy)
 
         ratio = self.energy / self.max_energy
@@ -46,10 +53,15 @@ class Prey:
         
         self.colour = (shade, shade, shade)
 
+        if self.energy < 30 and self.rest_chance_updated == False:
+            self.rest_chance_updated = True
+            self.rest_chance -= 1
+            
         if self.energy <= 0:
             self.die()
             if not self.is_alive:
                 print(f"\033[91m{self.name} has died! (age {int(self.age)})\033[0m")
+                death_sfx.play()
             return
     
         # handle resting
@@ -69,11 +81,11 @@ class Prey:
             self.x = self.target_x
             self.y = self.target_y
 
-            # 1/3 chance to rest
-            if r.randint(1,3) == 1:
+            # 1/3 chance to rest; 1/2 if energy below 25
+            if r.randint(1,self.rest_chance) == 1:
                 self.resting = True
                 self.rest_timer = r.randint(90, 220)  # frames to rest
-                print(f"{self.name} resting for {round(self.rest_timer/60, 2)} seconds..")
+                print(f"\033[94m{self.name} resting for {round(self.rest_timer/60, 2)} seconds..\033[0m]")
 
             # pick new target
             self.choose_random_target(screen_width, screen_height)
