@@ -61,7 +61,6 @@ class Prey:
     def assign_random_bush(self, bushes):
         if bushes:
             self.assigned_bush = r.choice(bushes)
-            print(f"\033[90m{self.name} assigned to bush at ({round(self.assigned_bush.x)}, {round(self.assigned_bush.y)})\033[0m")
     
     def is_assigned_bush_empty(self):
         if self.assigned_bush is None:

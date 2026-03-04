@@ -16,6 +16,8 @@ running = True
 elapsed = 0
 times = []
 prey_populations = []
+bush_populations = []
+pred_populations = []
 plot_update_counter = 0
 sim_time = 0
 death_counter = 0
@@ -26,6 +28,14 @@ famine_timer = 0
 next_famine_time = r.randint(60, 180)
 
 elapsed_font = pg.font.Font(None, stats_size)
+
+# rmove prey
+button_width = 150
+button_height = 40
+button_x = 20
+button_y = 60
+button_rect = pg.Rect(button_x, button_y, button_width, button_height)
+button_font = pg.font.Font(None, 24)
 
 p = Prey(screen_width / 2, screen_height / 2)
 x = Predator(screen_width / 2, screen_height / 2)
@@ -61,12 +71,21 @@ while running:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             running = False
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if button_rect.collidepoint(event.pos):
+                prey_list.clear()
 
     screen.fill(background_colour)
 
     fps_val = clock.get_fps()
     fps_text = fps_font.render(f"FPS: {int(fps_val)}", True, (200, 200, 200))
     screen.blit(fps_text, (20, 10))
+
+    # Draw button
+    pg.draw.rect(screen, (100, 150, 200), button_rect)
+    pg.draw.rect(screen, (255, 255, 255), button_rect, 2)
+    button_text = button_font.render("Remove All Prey", True, (255, 255, 255))
+    screen.blit(button_text, (button_x + 10, button_y + 8))
 
     elapsed += dt
     times.append(elapsed)
@@ -107,7 +126,7 @@ while running:
 
     pred_list = [x for x in pred_list if x.is_alive]
     for pred in pred_list:
-        pred.update()
+        pred.update(prey_list, pred_list, dt)
         pred.draw(screen)
 
     prey_pop = len(prey_list)
@@ -125,11 +144,13 @@ while running:
     screen.blit(elapsed_surface, (screen_width - 130, screen_height - 60))
 
     prey_populations.append(prey_pop)
+    bush_populations.append(len(bush_list))
+    pred_populations.append(len(pred_list))
 
     plot_update_counter += 1
 
-    if plot_update_counter >= 10:
-        update_plot(times, prey_populations)
+    if plot_update_counter >= 15:
+        update_plot(times, prey_populations, bush_populations, pred_populations)
         plot_update_counter = 0
 
 
